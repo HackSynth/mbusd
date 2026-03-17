@@ -29,9 +29,18 @@ jobs:
             yum clean all &&
             
             # 2. 安装编译依赖 (附加 systemd-devel 以支持 CentOS 7 的 systemctl 管理)
-            yum install -y gcc make cmake git systemd-devel &&
+            # 注意：CentOS 7 默认 cmake 版本过低(2.8.12)，需要安装新版 cmake
+            yum install -y gcc make git systemd-devel libarchive &&
             
-            # 3. 创建构建目录并编译 mbusd
+            # 3. 安装新版 CMake 3.10+ (从官方下载预编译二进制)
+            curl -sSL https://github.com/Kitware/CMake/releases/download/v3.28.3/cmake-3.28.3-linux-x86_64.tar.gz -o /tmp/cmake.tar.gz &&
+            tar -xzf /tmp/cmake.tar.gz -C /opt &&
+            rm /tmp/cmake.tar.gz &&
+            ln -sf /opt/cmake-3.28.3-linux-x86_64/bin/cmake /usr/local/bin/cmake &&
+            ln -sf /opt/cmake-3.28.3-linux-x86_64/bin/ctest /usr/local/bin/ctest &&
+            ln -sf /opt/cmake-3.28.3-linux-x86_64/bin/cpack /usr/local/bin/cpack &&
+            
+            # 4. 创建构建目录并编译 mbusd
             mkdir -p build &&
             cd build &&
             cmake -DENABLE_SYSTEMD=ON .. &&
